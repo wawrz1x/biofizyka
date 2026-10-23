@@ -32,3 +32,6 @@ desktop.ini
 
 # Streamlit temporary data
 .streamlit/*.log
+
+# Archiwum lokalne (pozostałe ćwiczenia i materiały pomocnicze)
+labBB/
