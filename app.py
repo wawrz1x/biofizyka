@@ -24,96 +24,198 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Estetyczne style CSS dla laboratoryjnego stanowiska pomiarowego
-st.markdown("""
-<style>
+# Inicjalizacja motywu graficznego (domyślnie: Tryb Jasny)
+if "dark_mode" not in st.session_state:
+    st.session_state["dark_mode"] = False
+
+dark_mode = st.session_state["dark_mode"]
+
+# Style CSS dostosowane do wybranego motywu (Jasny / Ciemny)
+if dark_mode:
+    css_theme = """
+    .stApp {
+        background-color: #030712 !important;
+        color: #F8FAFC !important;
+    }
+    header[data-testid="stHeader"], .stAppHeader {
+        background-color: #030712 !important;
+    }
+    div[data-testid="stDecoration"] {
+        display: none !important;
+    }
     .app-header {
-        background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
-        border: 1px solid #334155;
+        background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%) !important;
+        border: 1px solid #334155 !important;
+    }
+    .app-header h1 {
+        color: #F8FAFC !important;
+    }
+    .app-header p {
+        color: #94A3B8 !important;
+    }
+    .kpi-card {
+        background-color: #0F172A !important;
+        border: 1px solid #334155 !important;
+    }
+    .kpi-val {
+        color: #38BDF8 !important;
+    }
+    .kpi-lbl {
+        color: #94A3B8 !important;
+    }
+    .info-box {
+        background-color: #0F172A !important;
+        border-left: 4px solid #38BDF8 !important;
+        color: #F8FAFC !important;
+    }
+    .info-box h4 {
+        color: #60A5FA !important;
+    }
+    .badge-ghost {
+        background-color: rgba(148, 163, 184, 0.2) !important;
+        color: #CBD5E1 !important;
+        border: 1px solid #64748B !important;
+    }
+    .stTextInput input, .stNumberInput input, .stSelectbox div[data-baseweb="select"] {
+        background-color: #0F172A !important;
+        color: #F8FAFC !important;
+        border-color: #334155 !important;
+    }
+    .stRadio label, .stCheckbox label {
+        color: #F8FAFC !important;
+    }
+    .stTabs [data-baseweb="tab-list"] {
+        background-color: #030712 !important;
+    }
+    .stTabs [data-baseweb="tab"] {
+        color: #94A3B8 !important;
+    }
+    .stTabs [aria-selected="true"] {
+        color: #38BDF8 !important;
+    }
+    """
+else:
+    css_theme = """
+    .app-header {
+        background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%) !important;
+        border: 1px solid #0284C7 !important;
+    }
+    .app-header h1 {
+        color: #FFFFFF !important;
+    }
+    .app-header p {
+        color: #E0F2FE !important;
+    }
+    .kpi-card {
+        background-color: #F8FAFC !important;
+        border: 1px solid #CBD5E1 !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+    }
+    .kpi-val {
+        color: #0284C7 !important;
+    }
+    .kpi-lbl {
+        color: #64748B !important;
+    }
+    .info-box {
+        background-color: #F0F9FF !important;
+        border-left: 4px solid #0284C7 !important;
+        color: #0C4A6E !important;
+    }
+    .info-box h4 {
+        color: #0369A1 !important;
+    }
+    .badge-ghost {
+        background-color: #F1F5F9 !important;
+        color: #334155 !important;
+        border: 1px solid #CBD5E1 !important;
+    }
+    .badge-spike {
+        background-color: rgba(16, 185, 129, 0.15) !important;
+        color: #047857 !important;
+        border: 1px solid #10B981 !important;
+    }
+    .badge-sub {
+        background-color: rgba(239, 68, 68, 0.15) !important;
+        color: #B91C1C !important;
+        border: 1px solid #EF4444 !important;
+    }
+    """
+
+st.markdown(f"""
+<style>
+    .app-header {{
         border-radius: 8px;
         padding: 14px 22px;
         margin-bottom: 14px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-    }
-    .app-header h1 {
-        color: #F8FAFC;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15);
+    }}
+    .app-header h1 {{
         font-size: 1.75rem;
         font-weight: 700;
         margin: 0;
         display: flex;
         align-items: center;
         gap: 10px;
-    }
-    .app-header p {
-        color: #94A3B8;
+    }}
+    .app-header p {{
         font-size: 0.92rem;
         margin: 4px 0 0 0;
-    }
-    .status-badge {
+    }}
+    .status-badge {{
         display: inline-block;
         padding: 3px 8px;
         border-radius: 9999px;
         font-size: 0.78rem;
         font-weight: 600;
-    }
-    .badge-spike {
-        background-color: rgba(16, 185, 129, 0.2);
-        color: #34D399;
-        border: 1px solid #059669;
-    }
-    .badge-sub {
-        background-color: rgba(239, 68, 68, 0.2);
-        color: #F87171;
-        border: 1px solid #DC2626;
-    }
-    .badge-ghost {
-        background-color: rgba(148, 163, 184, 0.2);
-        color: #CBD5E1;
-        border: 1px solid #64748B;
+    }}
+    .badge-spike {{
+        background-color: rgba(16, 185, 129, 0.15);
+        color: #059669;
+        border: 1px solid #10B981;
+    }}
+    .badge-sub {{
+        background-color: rgba(239, 68, 68, 0.15);
+        color: #DC2626;
+        border: 1px solid #EF4444;
+    }}
+    .badge-ghost {{
         padding: 4px 10px;
         border-radius: 6px;
         font-size: 0.82rem;
         margin: 6px 0;
-    }
-    .kpi-card {
-        background-color: #0F172A;
-        border: 1px solid #334155;
+    }}
+    .kpi-card {{
         border-radius: 6px;
         padding: 8px 12px;
         text-align: center;
         margin-bottom: 6px;
-    }
-    .kpi-val {
+    }}
+    .kpi-val {{
         font-family: 'Consolas', 'Courier New', monospace;
         font-size: 1.25rem;
         font-weight: 700;
-        color: #38BDF8;
-    }
-    .kpi-lbl {
+    }}
+    .kpi-lbl {{
         font-size: 0.72rem;
-        color: #94A3B8;
         text-transform: uppercase;
         font-weight: 600;
         letter-spacing: 0.5px;
-    }
-    .info-box {
-        background-color: #F8FAFC;
-        border-left: 4px solid #3B82F6;
+    }}
+    .info-box {{
         padding: 12px 16px;
         border-radius: 4px;
         margin: 12px 0;
         font-size: 0.92rem;
         line-height: 1.5;
-        color: #1E293B;
-    }
-    .info-box h4 {
+    }}
+    .info-box h4 {{
         margin-top: 0;
-        color: #1E3A8A;
         margin-bottom: 6px;
-    }
+    }}
+    {css_theme}
 </style>
 """, unsafe_allow_html=True)
-
 
 # -----------------------------------------------------------------------------
 # INICJALIZACJA STANU SESJI
@@ -123,13 +225,23 @@ if "ghost_traces" not in st.session_state:
     if "ghost_trace" in st.session_state and st.session_state["ghost_trace"] is not None:
         st.session_state["ghost_traces"].append(st.session_state["ghost_trace"])
 
-GHOST_COLORS = [
+GHOST_COLORS_DARK = [
     "#94A3B8",  # Szary (ślad 1)
     "#A78BFA",  # Fioletowy (ślad 2)
     "#2DD4BF",  # Morski / Turkusowy (ślad 3)
     "#FB7185",  # Koralowy / Różowy (ślad 4)
     "#FCD34D",  # Złoty / Żółty (ślad 5)
 ]
+
+GHOST_COLORS_LIGHT = [
+    "#64748B",  # Ciemnoszary (ślad 1)
+    "#7C3AED",  # Wyrazisty fiolet (ślad 2)
+    "#0D9488",  # Ciemny turkus (ślad 3)
+    "#E11D48",  # Karmin / Koral (ślad 4)
+    "#B45309",  # Ciemny bursztyn (ślad 5)
+]
+
+GHOST_COLORS = GHOST_COLORS_DARK if dark_mode else GHOST_COLORS_LIGHT
 MAX_GHOSTS = 5
 
 if "raw_measurements" not in st.session_state:
@@ -175,15 +287,32 @@ def check_password() -> bool:
     if st.session_state.get("password_correct", False):
         return True
 
+    # Górny pasek z przełącznikiem motywu na ekranie logowania
+    col_l_space, col_l_toggle = st.columns([4.2, 1.2])
+    with col_l_toggle:
+        login_dark = st.toggle("🌙 Tryb ciemny", value=st.session_state["dark_mode"], key="theme_toggle_login")
+        if login_dark != st.session_state["dark_mode"]:
+            st.session_state["dark_mode"] = login_dark
+            st.rerun()
+
     # Wycentrowany panel logowania
     _, col_center, _ = st.columns([1, 1.3, 1])
     with col_center:
-        st.markdown("<br><br>", unsafe_allow_html=True)
-        st.markdown("""
-        <div style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); border: 1px solid #334155; border-radius: 12px; padding: 26px 28px; text-align: center; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);">
+        st.markdown("<br>", unsafe_allow_html=True)
+        if dark_mode:
+            card_style = "background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); border: 1px solid #334155; border-radius: 12px; padding: 26px 28px; text-align: center; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);"
+            h_color = "#F8FAFC"
+            p_color = "#94A3B8"
+        else:
+            card_style = "background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%); border: 1px solid #CBD5E1; border-radius: 12px; padding: 26px 28px; text-align: center; box-shadow: 0 8px 20px -4px rgba(0,0,0,0.08);"
+            h_color = "#0F172A"
+            p_color = "#64748B"
+
+        st.markdown(f"""
+        <div style="{card_style}">
             <div style="font-size: 2.2rem; margin-bottom: 8px;">🔒</div>
-            <h2 style="color: #F8FAFC; margin: 0 0 6px 0; font-size: 1.35rem;">Wirtualna Pracownia Biofizyki</h2>
-            <p style="color: #94A3B8; font-size: 0.90rem; margin: 0;">Rozdział 21: Potencjał Czynnościowy Neuronu</p>
+            <h2 style="color: {h_color}; margin: 0 0 6px 0; font-size: 1.35rem;">Wirtualna Pracownia Biofizyki</h2>
+            <p style="color: {p_color}; font-size: 0.90rem; margin: 0;">Rozdział 21: Potencjał Czynnościowy Neuronu</p>
         </div>
         """, unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
@@ -211,14 +340,22 @@ if not check_password():
 
 
 # -----------------------------------------------------------------------------
-# NAGŁÓWEK GŁÓWNY
+# NAGŁÓWEK GŁÓWNY I PRZEŁĄCZNIK MOTYWU
 # -----------------------------------------------------------------------------
-st.markdown("""
-<div class="app-header">
-    <h1>⚡ Wirtualna Pracownia Biofizyki: Potencjał Czynnościowy Neuronu <span style="font-size:0.85rem; font-weight:normal; background:#1E3A8A; padding:2px 8px; border-radius:4px;">Wersja 2.1</span></h1>
-    <p>Trzykanałowy oscyloskop laboratoryjny i generator bodźców elektrycznych w oparciu o model biofizyczny (Rozdział 21 podręcznika)</p>
-</div>
-""", unsafe_allow_html=True)
+col_header, col_mode = st.columns([4.2, 1.1], vertical_alignment="center")
+with col_header:
+    badge_bg = "#1E3A8A" if dark_mode else "#0369A1"
+    st.markdown(f"""
+    <div class="app-header">
+        <h1>⚡ Wirtualna Pracownia Biofizyki: Potencjał Czynnościowy Neuronu <span style="font-size:0.85rem; font-weight:normal; background:{badge_bg}; color:#FFFFFF; padding:2px 8px; border-radius:4px;">Wersja 2.1</span></h1>
+        <p>Trzykanałowy oscyloskop laboratoryjny i generator bodźców elektrycznych w oparciu o model biofizyczny (Rozdział 21 podręcznika)</p>
+    </div>
+    """, unsafe_allow_html=True)
+with col_mode:
+    main_dark = st.toggle("🌙 Tryb ciemny", value=st.session_state["dark_mode"], key="theme_toggle_main")
+    if main_dark != st.session_state["dark_mode"]:
+        st.session_state["dark_mode"] = main_dark
+        st.rerun()
 
 
 # -----------------------------------------------------------------------------
@@ -372,9 +509,11 @@ with col_ctrl:
             
     if num_ghosts > 0:
         for i, g in enumerate(st.session_state["ghost_traces"]):
+            bg_card = "rgba(15, 23, 42, 0.7)" if dark_mode else "#F1F5F9"
+            txt_card = "#E2E8F0" if dark_mode else "#1E293B"
             st.markdown(
-                f'<div style="font-size: 0.80rem; margin-bottom: 3px; padding: 3px 8px; border-radius: 4px; '
-                f'background: rgba(15, 23, 42, 0.7); border-left: 3px solid {g["color"]}; color: #E2E8F0;">'
+                f'<div style="font-size: 0.80rem; margin-bottom: 3px; padding: 4px 8px; border-radius: 4px; '
+                f'background: {bg_card}; border-left: 3px solid {g["color"]}; color: {txt_card};">'
                 f'<strong style="color: {g["color"]}">#{i+1}:</strong> {g["cfg"]}'
                 f'</div>',
                 unsafe_allow_html=True
@@ -432,6 +571,48 @@ with col_main:
     # ZAKŁADKA 1: ZINTEGROWANY TRZYKANAŁOWY OSCYLOSKOP (PLOTLY)
     # -------------------------------------------------------------------------
     with tab_scope:
+        # Parametry kolorystyczne oscyloskopu zależne od wybranego motywu (Jasny / Ciemny)
+        if dark_mode:
+            plot_template = "plotly_dark"
+            paper_bg = "#0A0F1D"
+            plot_bg = "#030712"
+            txt_color = "#F8FAFC"
+            tick_color = "#E2E8F0"
+            grid_color = "#1E293B"
+            legend_bg = "rgba(15, 23, 42, 0.95)"
+            legend_border = "#475569"
+            legend_txt = "#FFFFFF"
+            trace_u_color = "#38BDF8"
+            ref_zero_color = "#EF4444"
+            ref_zero_txt = "#FCA5A5"
+            ref_thresh_color = "#F59E0B"
+            ref_thresh_txt = "#FDE68A"
+            ref_rest_color = "#94A3B8"
+            ref_rest_txt = "#F1F5F9"
+            trace_gna_color = "#3B82F6"
+            trace_gk_color = "#EF4444"
+            trace_j_color = "#F59E0B"
+        else:
+            plot_template = "plotly_white"
+            paper_bg = "#FFFFFF"
+            plot_bg = "#F8FAFC"
+            txt_color = "#0F172A"
+            tick_color = "#334155"
+            grid_color = "#E2E8F0"
+            legend_bg = "rgba(255, 255, 255, 0.95)"
+            legend_border = "#CBD5E1"
+            legend_txt = "#0F172A"
+            trace_u_color = "#0284C7"
+            ref_zero_color = "#DC2626"
+            ref_zero_txt = "#B91C1C"
+            ref_thresh_color = "#D97706"
+            ref_thresh_txt = "#B45309"
+            ref_rest_color = "#64748B"
+            ref_rest_txt = "#475569"
+            trace_gna_color = "#2563EB"
+            trace_gk_color = "#DC2626"
+            trace_j_color = "#D97706"
+
         # Utworzenie zintegrowanego wykresu 3-panelowego ze wspólną osią czasu
         fig_scope = make_subplots(
             rows=3, cols=1,
@@ -514,7 +695,7 @@ with col_main:
                 x=res.t, y=res.V,
                 mode="lines",
                 name="U(t) [mV]",
-                line=dict(color="#38BDF8", width=2.8),
+                line=dict(color=trace_u_color, width=2.8),
                 hovertemplate="U: %{y:.2f} mV<extra></extra>",
                 legend="legend",
                 showlegend=True
@@ -524,21 +705,21 @@ with col_main:
         
         # Linie odniesienia dla panelu 1 (w 100% zgodne z Ryc. 1 i Ryc. 7 podręcznika)
         fig_scope.add_hline(
-            y=0.0, line_dash="dash", line_color="#EF4444", line_width=1.0, opacity=0.8,
+            y=0.0, line_dash="dash", line_color=ref_zero_color, line_width=1.0, opacity=0.8,
             annotation_text="0 mV (linia zerowa)", annotation_position="top right",
-            annotation_font=dict(color="#FCA5A5", size=10),
+            annotation_font=dict(color=ref_zero_txt, size=10),
             row=1, col=1
         )
         fig_scope.add_hline(
-            y=-60.0, line_dash="dot", line_color="#F59E0B", line_width=1.3, opacity=0.9,
+            y=-60.0, line_dash="dot", line_color=ref_thresh_color, line_width=1.3, opacity=0.9,
             annotation_text="Próg pobudliwości w spoczynku (-60 mV)", annotation_position="top right",
-            annotation_font=dict(color="#FDE68A", size=10),
+            annotation_font=dict(color=ref_thresh_txt, size=10),
             row=1, col=1
         )
         fig_scope.add_hline(
-            y=-90.0, line_dash="dash", line_color="#94A3B8", line_width=1.2, opacity=0.9,
+            y=-90.0, line_dash="dash", line_color=ref_rest_color, line_width=1.2, opacity=0.9,
             annotation_text="Potencjał spoczynkowy (-90 mV)", annotation_position="bottom right",
-            annotation_font=dict(color="#F1F5F9", size=10),
+            annotation_font=dict(color=ref_rest_txt, size=10),
             row=1, col=1
         )
 
@@ -548,7 +729,7 @@ with col_main:
                 x=res.t, y=res.g_Na,
                 mode="lines",
                 name="g_Na = 1/R_Na (Sód)",
-                line=dict(color="#3B82F6", width=2.4),
+                line=dict(color=trace_gna_color, width=2.4),
                 hovertemplate="g_Na: %{y:.2f} mS/cm²<extra></extra>",
                 legend="legend2",
                 showlegend=True
@@ -560,7 +741,7 @@ with col_main:
                 x=res.t, y=res.g_K,
                 mode="lines",
                 name="g_K = 1/R_K (Potas)",
-                line=dict(color="#EF4444", width=2.4),
+                line=dict(color=trace_gk_color, width=2.4),
                 hovertemplate="g_K: %{y:.2f} mS/cm²<extra></extra>",
                 legend="legend2",
                 showlegend=True
@@ -574,7 +755,7 @@ with col_main:
                 x=res.t, y=res.I_stim,
                 mode="lines",
                 name="J(t) (Bodziec)",
-                line=dict(color="#F59E0B", width=2.2),
+                line=dict(color=trace_j_color, width=2.2),
                 hovertemplate="J: %{y:.2f} µA/cm²<extra></extra>",
                 legend="legend3",
                 showlegend=True
@@ -582,71 +763,71 @@ with col_main:
             row=3, col=1
         )
 
-        # Konfiguracja ciemnego motywu, 3 odrębnych białych legend dla każdego kanału i zsynchronizowanego kursora
+        # Konfiguracja motywu, 3 odrębnych legend dla każdego kanału i zsynchronizowanego kursora
         common_legend_style = dict(
             orientation="h",
             x=1.0,
             xanchor="right",
             yanchor="bottom",
-            bgcolor="rgba(15, 23, 42, 0.95)",
-            bordercolor="#475569",
+            bgcolor=legend_bg,
+            bordercolor=legend_border,
             borderwidth=1.2,
-            font=dict(color="#FFFFFF", size=11, family="sans-serif")
+            font=dict(color=legend_txt, size=11, family="sans-serif")
         )
 
         fig_scope.update_layout(
-            template="plotly_dark",
+            template=plot_template,
             height=710,
             margin=dict(l=60, r=25, t=50, b=35),
-            paper_bgcolor="#0A0F1D",
-            plot_bgcolor="#030712",
+            paper_bgcolor=paper_bg,
+            plot_bgcolor=plot_bg,
             hovermode="x unified",
-            font=dict(color="#F8FAFC", family="sans-serif"),
+            font=dict(color=txt_color, family="sans-serif"),
             showlegend=True,
             legend=dict(**common_legend_style, y=1.015),
             legend2=dict(**common_legend_style, y=0.545),
             legend3=dict(**common_legend_style, y=0.200)
         )
 
-        # Wyraźne białe nagłówki podwykresów wyrównane do lewej strony paska
+        # Wyraźne nagłówki podwykresów wyrównane do lewej strony paska
         for ann in fig_scope['layout']['annotations']:
             ann['x'] = 0.0
             ann['xanchor'] = 'left'
-            ann['font'] = dict(color="#F8FAFC", size=12, family="sans-serif")
+            ann['font'] = dict(color=txt_color, size=12, family="sans-serif")
 
         # Osie X z czytelnymi etykietami
         fig_scope.update_xaxes(
             title_text="Czas t [ms]",
-            title_font=dict(color="#F8FAFC", size=12),
-            tickfont=dict(color="#E2E8F0", size=11),
-            gridcolor="#1E293B",
+            title_font=dict(color=txt_color, size=12),
+            tickfont=dict(color=tick_color, size=11),
+            gridcolor=grid_color,
             row=3, col=1
         )
         fig_scope.update_xaxes(
-            tickfont=dict(color="#E2E8F0", size=11),
-            gridcolor="#1E293B",
+            tickfont=dict(color=tick_color, size=11),
+            gridcolor=grid_color,
             row=1, col=1
         )
         fig_scope.update_xaxes(
-            tickfont=dict(color="#E2E8F0", size=11),
-            gridcolor="#1E293B",
+            tickfont=dict(color=tick_color, size=11),
+            gridcolor=grid_color,
             row=2, col=1
         )
 
         # Osie Y z czytelnymi etykietami
         fig_scope.update_yaxes(
             title_text="U [mV]",
-            title_font=dict(color="#F8FAFC", size=12),
-            tickfont=dict(color="#E2E8F0", size=11),
+            title_font=dict(color=txt_color, size=12),
+            tickfont=dict(color=tick_color, size=11),
             range=[-105, 55],
-            gridcolor="#1E293B",
+            gridcolor=grid_color,
             row=1, col=1
         )
         fig_scope.update_yaxes(
             title_text="g [mS/cm²]",
-            title_font=dict(color="#F8FAFC", size=12),
-            tickfont=dict(color="#E2E8F0", size=11),
-            gridcolor="#1E293B",
+            title_font=dict(color=txt_color, size=12),
+            tickfont=dict(color=tick_color, size=11),
+            gridcolor=grid_color,
             row=2, col=1
         )
         
@@ -654,10 +835,10 @@ with col_main:
         j_max = max(20.0, float(np.max(res.I_stim)) * 1.25)
         fig_scope.update_yaxes(
             title_text="J [µA/cm²]",
-            title_font=dict(color="#F8FAFC", size=12),
-            tickfont=dict(color="#E2E8F0", size=11),
+            title_font=dict(color=txt_color, size=12),
+            tickfont=dict(color=tick_color, size=11),
             range=[j_min, j_max],
-            gridcolor="#1E293B",
+            gridcolor=grid_color,
             row=3, col=1
         )
 
@@ -825,8 +1006,8 @@ with col_main:
                     x=x_data, y=y_data,
                     mode="markers+lines",
                     name="Punkty pomiarowe",
-                    marker=dict(size=9, color="#38BDF8"),
-                    line=dict(color="#38BDF8", dash="dash")
+                    marker=dict(size=9, color=trace_u_color),
+                    line=dict(color=trace_u_color, dash="dash")
                 )
             )
             
@@ -853,7 +1034,7 @@ with col_main:
                             x=x_line, y=y_line,
                             mode="lines",
                             name=f"Prosta regresji: Iₚ = {slope_a:.2f} · (1/Δt) + {intercept_b:.2f} (R² = {r_sq:.3f})",
-                            line=dict(color="#EF4444", width=2.0)
+                            line=dict(color=ref_zero_color, width=2.0)
                         )
                     )
                     st.info(f"📐 **Równanie prostej dopasowanej:** `Iₚ = {slope_a:.2f} · (1/Δt) + {intercept_b:.2f}` (współczynnik determinacji R² = {r_sq:.4f})")
@@ -862,31 +1043,31 @@ with col_main:
             chart_title = "Zależność natężenia bodźca progowego od czasu trwania: Iₚ = f(Δt)" if sel_x == "Δt [ms]" and sel_y == "Ip [µA/cm²]" else f"Wykres pomiarowy: {sel_y} = f({sel_x})"
             
             fig_custom.update_layout(
-                title=dict(text=f"<b>{chart_title}</b>", font=dict(color="#F8FAFC", size=13)),
-                template="plotly_dark",
+                title=dict(text=f"<b>{chart_title}</b>", font=dict(color=txt_color, size=13)),
+                template=plot_template,
                 height=450,
-                paper_bgcolor="#0A0F1D",
-                plot_bgcolor="#030712",
+                paper_bgcolor=paper_bg,
+                plot_bgcolor=plot_bg,
                 margin=dict(l=50, r=30, t=50, b=40),
-                font=dict(color="#F8FAFC", family="sans-serif"),
+                font=dict(color=txt_color, family="sans-serif"),
                 legend=dict(
-                    bgcolor="rgba(15, 23, 42, 0.95)",
-                    bordercolor="#475569",
-                    borderwidth=1.5,
-                    font=dict(color="#FFFFFF", size=11, family="sans-serif")
+                    bgcolor=legend_bg,
+                    bordercolor=legend_border,
+                    borderwidth=1.2,
+                    font=dict(color=legend_txt, size=11, family="sans-serif")
                 )
             )
             fig_custom.update_xaxes(
                 title_text=sel_x,
-                title_font=dict(color="#F8FAFC", size=12),
-                tickfont=dict(color="#E2E8F0", size=11),
-                gridcolor="#1E293B"
+                title_font=dict(color=txt_color, size=12),
+                tickfont=dict(color=tick_color, size=11),
+                gridcolor=grid_color
             )
             fig_custom.update_yaxes(
                 title_text=sel_y,
-                title_font=dict(color="#F8FAFC", size=12),
-                tickfont=dict(color="#E2E8F0", size=11),
-                gridcolor="#1E293B"
+                title_font=dict(color=txt_color, size=12),
+                tickfont=dict(color=tick_color, size=11),
+                gridcolor=grid_color
             )
             
             st.plotly_chart(fig_custom, use_container_width=True)
