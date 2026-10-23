@@ -24,7 +24,68 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Inicjalizacja motywu graficznego (domyślnie: Tryb Jasny)
+# -----------------------------------------------------------------------------
+# WERYFIKACJA HASŁA DOSTĘPU (STREAMLIT SECRETS)
+# Ekran logowania pozostaje zawsze w czytelnym, kontrastowym trybie jasnym
+# -----------------------------------------------------------------------------
+def check_password() -> bool:
+    """Zwraca True, jeśli użytkownik podał prawidłowe hasło dostępu."""
+    if "APP_PASSWORD" not in st.secrets:
+        st.error("⚠️ Brak konfiguracji `APP_PASSWORD` w pliku `.streamlit/secrets.toml` lub panelu Streamlit Cloud Settings.")
+        st.info("Dodaj wpis `APP_PASSWORD = \"twoje_haslo\"` do konfiguracji.")
+        return False
+
+    def password_entered():
+        """Weryfikuje hasło wprowadzone przez użytkownika."""
+        if st.session_state.get("password_input", "") == st.secrets["APP_PASSWORD"]:
+            st.session_state["password_correct"] = True
+            if "password_input" in st.session_state:
+                del st.session_state["password_input"]  # Nie przechowujemy hasła w stanie sesji
+        else:
+            st.session_state["password_correct"] = False
+
+    # Jeśli użytkownik już został pomyślnie uwierzytelniony w bieżącej sesji:
+    if st.session_state.get("password_correct", False):
+        return True
+
+    # Wycentrowany, w 100% czytelny panel logowania (zawsze czysty tryb jasny)
+    _, col_center, _ = st.columns([1, 1.3, 1])
+    with col_center:
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        st.markdown("""
+        <div style="background: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 12px; padding: 28px 30px; text-align: center; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.08);">
+            <div style="font-size: 2.2rem; margin-bottom: 8px;">🔒</div>
+            <h2 style="color: #0F172A; margin: 0 0 6px 0; font-size: 1.35rem; font-weight: 700;">Wirtualna Pracownia Biofizyki</h2>
+            <p style="color: #64748B; font-size: 0.90rem; margin: 0;">Rozdział 21: Potencjał Czynnościowy Neuronu</p>
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        st.text_input(
+            "Wprowadź hasło dostępu do stanowiska:",
+            type="password",
+            on_change=password_entered,
+            key="password_input",
+            placeholder="Wpisz hasło i wciśnij Enter..."
+        )
+
+        if st.button("🔓 Zaloguj do stanowiska", use_container_width=True, type="primary"):
+            password_entered()
+            st.rerun()
+
+        if "password_correct" in st.session_state and not st.session_state["password_correct"]:
+            st.error("❌ Nieprawidłowe hasło dostępu. Spróbuj ponownie.")
+
+    return False
+
+
+if not check_password():
+    st.stop()
+
+
+# -----------------------------------------------------------------------------
+# GŁÓWNA APLIKACJA — INICJALIZACJA MOTYWU GRAFICZNEGO
+# -----------------------------------------------------------------------------
 if "dark_mode" not in st.session_state:
     st.session_state["dark_mode"] = False
 
@@ -225,23 +286,14 @@ if "ghost_traces" not in st.session_state:
     if "ghost_trace" in st.session_state and st.session_state["ghost_trace"] is not None:
         st.session_state["ghost_traces"].append(st.session_state["ghost_trace"])
 
-GHOST_COLORS_DARK = [
+# Wyraziste kolory dla zamrożonych śladów (kontrastowe na ciemnym ekranie oscyloskopu)
+GHOST_COLORS = [
     "#94A3B8",  # Szary (ślad 1)
     "#A78BFA",  # Fioletowy (ślad 2)
     "#2DD4BF",  # Morski / Turkusowy (ślad 3)
     "#FB7185",  # Koralowy / Różowy (ślad 4)
     "#FCD34D",  # Złoty / Żółty (ślad 5)
 ]
-
-GHOST_COLORS_LIGHT = [
-    "#64748B",  # Ciemnoszary (ślad 1)
-    "#7C3AED",  # Wyrazisty fiolet (ślad 2)
-    "#0D9488",  # Ciemny turkus (ślad 3)
-    "#E11D48",  # Karmin / Koral (ślad 4)
-    "#B45309",  # Ciemny bursztyn (ślad 5)
-]
-
-GHOST_COLORS = GHOST_COLORS_DARK if dark_mode else GHOST_COLORS_LIGHT
 MAX_GHOSTS = 5
 
 if "raw_measurements" not in st.session_state:
@@ -262,81 +314,6 @@ if "student_analysis" not in st.session_state:
         "method_desc": "",
         "charge_concl": ""
     }
-
-
-# -----------------------------------------------------------------------------
-# WERYFIKACJA HASŁA DOSTĘPU (STREAMLIT SECRETS)
-# -----------------------------------------------------------------------------
-def check_password() -> bool:
-    """Zwraca True, jeśli użytkownik podał prawidłowe hasło dostępu."""
-    if "APP_PASSWORD" not in st.secrets:
-        st.error("⚠️ Brak konfiguracji `APP_PASSWORD` w pliku `.streamlit/secrets.toml` lub panelu Streamlit Cloud Settings.")
-        st.info("Dodaj wpis `APP_PASSWORD = \"twoje_haslo\"` do konfiguracji.")
-        return False
-
-    def password_entered():
-        """Weryfikuje hasło wprowadzone przez użytkownika."""
-        if st.session_state.get("password_input", "") == st.secrets["APP_PASSWORD"]:
-            st.session_state["password_correct"] = True
-            if "password_input" in st.session_state:
-                del st.session_state["password_input"]  # Nie przechowujemy hasła w stanie sesji
-        else:
-            st.session_state["password_correct"] = False
-
-    # Jeśli użytkownik już został pomyślnie uwierzytelniony w bieżącej sesji:
-    if st.session_state.get("password_correct", False):
-        return True
-
-    # Górny pasek z przełącznikiem motywu na ekranie logowania
-    col_l_space, col_l_toggle = st.columns([4.2, 1.2])
-    with col_l_toggle:
-        login_dark = st.toggle("🌙 Tryb ciemny", value=st.session_state["dark_mode"], key="theme_toggle_login")
-        if login_dark != st.session_state["dark_mode"]:
-            st.session_state["dark_mode"] = login_dark
-            st.rerun()
-
-    # Wycentrowany panel logowania
-    _, col_center, _ = st.columns([1, 1.3, 1])
-    with col_center:
-        st.markdown("<br>", unsafe_allow_html=True)
-        if dark_mode:
-            card_style = "background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); border: 1px solid #334155; border-radius: 12px; padding: 26px 28px; text-align: center; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);"
-            h_color = "#F8FAFC"
-            p_color = "#94A3B8"
-        else:
-            card_style = "background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%); border: 1px solid #CBD5E1; border-radius: 12px; padding: 26px 28px; text-align: center; box-shadow: 0 8px 20px -4px rgba(0,0,0,0.08);"
-            h_color = "#0F172A"
-            p_color = "#64748B"
-
-        st.markdown(f"""
-        <div style="{card_style}">
-            <div style="font-size: 2.2rem; margin-bottom: 8px;">🔒</div>
-            <h2 style="color: {h_color}; margin: 0 0 6px 0; font-size: 1.35rem;">Wirtualna Pracownia Biofizyki</h2>
-            <p style="color: {p_color}; font-size: 0.90rem; margin: 0;">Rozdział 21: Potencjał Czynnościowy Neuronu</p>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        st.text_input(
-            "Wprowadź hasło dostępu do stanowiska:",
-            type="password",
-            on_change=password_entered,
-            key="password_input",
-            placeholder="Wpisz hasło i wciśnij Enter..."
-        )
-
-        if st.button("🔓 Zaloguj do stanowiska", use_container_width=True):
-            password_entered()
-            st.rerun()
-
-        if "password_correct" in st.session_state and not st.session_state["password_correct"]:
-            st.error("❌ Nieprawidłowe hasło dostępu. Spróbuj ponownie.")
-
-    return False
-
-
-if not check_password():
-    st.stop()
 
 
 # -----------------------------------------------------------------------------
@@ -571,47 +548,26 @@ with col_main:
     # ZAKŁADKA 1: ZINTEGROWANY TRZYKANAŁOWY OSCYLOSKOP (PLOTLY)
     # -------------------------------------------------------------------------
     with tab_scope:
-        # Parametry kolorystyczne oscyloskopu zależne od wybranego motywu (Jasny / Ciemny)
-        if dark_mode:
-            plot_template = "plotly_dark"
-            paper_bg = "#0A0F1D"
-            plot_bg = "#030712"
-            txt_color = "#F8FAFC"
-            tick_color = "#E2E8F0"
-            grid_color = "#1E293B"
-            legend_bg = "rgba(15, 23, 42, 0.95)"
-            legend_border = "#475569"
-            legend_txt = "#FFFFFF"
-            trace_u_color = "#38BDF8"
-            ref_zero_color = "#EF4444"
-            ref_zero_txt = "#FCA5A5"
-            ref_thresh_color = "#F59E0B"
-            ref_thresh_txt = "#FDE68A"
-            ref_rest_color = "#94A3B8"
-            ref_rest_txt = "#F1F5F9"
-            trace_gna_color = "#3B82F6"
-            trace_gk_color = "#EF4444"
-            trace_j_color = "#F59E0B"
-        else:
-            plot_template = "plotly_white"
-            paper_bg = "#FFFFFF"
-            plot_bg = "#F8FAFC"
-            txt_color = "#0F172A"
-            tick_color = "#334155"
-            grid_color = "#E2E8F0"
-            legend_bg = "rgba(255, 255, 255, 0.95)"
-            legend_border = "#CBD5E1"
-            legend_txt = "#0F172A"
-            trace_u_color = "#0284C7"
-            ref_zero_color = "#DC2626"
-            ref_zero_txt = "#B91C1C"
-            ref_thresh_color = "#D97706"
-            ref_thresh_txt = "#B45309"
-            ref_rest_color = "#64748B"
-            ref_rest_txt = "#475569"
-            trace_gna_color = "#2563EB"
-            trace_gk_color = "#DC2626"
-            trace_j_color = "#D97706"
+        # Trzykanałowy oscyloskop laboratoryjny (ekran sprzętowy) ZAWSZE zachowuje profesjonalny ciemny motyw
+        plot_template = "plotly_dark"
+        paper_bg = "#0A0F1D"
+        plot_bg = "#030712"
+        txt_color = "#F8FAFC"
+        tick_color = "#E2E8F0"
+        grid_color = "#1E293B"
+        legend_bg = "rgba(15, 23, 42, 0.95)"
+        legend_border = "#475569"
+        legend_txt = "#FFFFFF"
+        trace_u_color = "#38BDF8"
+        ref_zero_color = "#EF4444"
+        ref_zero_txt = "#FCA5A5"
+        ref_thresh_color = "#F59E0B"
+        ref_thresh_txt = "#FDE68A"
+        ref_rest_color = "#94A3B8"
+        ref_rest_txt = "#F1F5F9"
+        trace_gna_color = "#3B82F6"
+        trace_gk_color = "#EF4444"
+        trace_j_color = "#F59E0B"
 
         # Utworzenie zintegrowanego wykresu 3-panelowego ze wspólną osią czasu
         fig_scope = make_subplots(
@@ -998,6 +954,32 @@ with col_main:
             x_data = df_plot[sel_x].values
             y_data = df_plot[sel_y].values
             
+            # Styl wykresu pomiarowego w zależności od aktywnego motywu
+            if dark_mode:
+                c_template = "plotly_dark"
+                c_paper_bg = "#0A0F1D"
+                c_plot_bg = "#030712"
+                c_txt = "#F8FAFC"
+                c_tick = "#E2E8F0"
+                c_grid = "#1E293B"
+                c_leg_bg = "rgba(15, 23, 42, 0.95)"
+                c_leg_border = "#475569"
+                c_leg_txt = "#FFFFFF"
+                c_point_color = "#38BDF8"
+                c_line_color = "#EF4444"
+            else:
+                c_template = "plotly_white"
+                c_paper_bg = "#FFFFFF"
+                c_plot_bg = "#F8FAFC"
+                c_txt = "#0F172A"
+                c_tick = "#334155"
+                c_grid = "#E2E8F0"
+                c_leg_bg = "rgba(255, 255, 255, 0.95)"
+                c_leg_border = "#CBD5E1"
+                c_leg_txt = "#0F172A"
+                c_point_color = "#0284C7"
+                c_line_color = "#DC2626"
+
             fig_custom = go.Figure()
             
             # Punkty pomiarowe
@@ -1006,8 +988,8 @@ with col_main:
                     x=x_data, y=y_data,
                     mode="markers+lines",
                     name="Punkty pomiarowe",
-                    marker=dict(size=9, color=trace_u_color),
-                    line=dict(color=trace_u_color, dash="dash")
+                    marker=dict(size=9, color=c_point_color),
+                    line=dict(color=c_point_color, dash="dash")
                 )
             )
             
@@ -1034,7 +1016,7 @@ with col_main:
                             x=x_line, y=y_line,
                             mode="lines",
                             name=f"Prosta regresji: Iₚ = {slope_a:.2f} · (1/Δt) + {intercept_b:.2f} (R² = {r_sq:.3f})",
-                            line=dict(color=ref_zero_color, width=2.0)
+                            line=dict(color=c_line_color, width=2.0)
                         )
                     )
                     st.info(f"📐 **Równanie prostej dopasowanej:** `Iₚ = {slope_a:.2f} · (1/Δt) + {intercept_b:.2f}` (współczynnik determinacji R² = {r_sq:.4f})")
@@ -1043,31 +1025,31 @@ with col_main:
             chart_title = "Zależność natężenia bodźca progowego od czasu trwania: Iₚ = f(Δt)" if sel_x == "Δt [ms]" and sel_y == "Ip [µA/cm²]" else f"Wykres pomiarowy: {sel_y} = f({sel_x})"
             
             fig_custom.update_layout(
-                title=dict(text=f"<b>{chart_title}</b>", font=dict(color=txt_color, size=13)),
-                template=plot_template,
+                title=dict(text=f"<b>{chart_title}</b>", font=dict(color=c_txt, size=13)),
+                template=c_template,
                 height=450,
-                paper_bgcolor=paper_bg,
-                plot_bgcolor=plot_bg,
+                paper_bgcolor=c_paper_bg,
+                plot_bgcolor=c_plot_bg,
                 margin=dict(l=50, r=30, t=50, b=40),
-                font=dict(color=txt_color, family="sans-serif"),
+                font=dict(color=c_txt, family="sans-serif"),
                 legend=dict(
-                    bgcolor=legend_bg,
-                    bordercolor=legend_border,
+                    bgcolor=c_leg_bg,
+                    bordercolor=c_leg_border,
                     borderwidth=1.2,
-                    font=dict(color=legend_txt, size=11, family="sans-serif")
+                    font=dict(color=c_leg_txt, size=11, family="sans-serif")
                 )
             )
             fig_custom.update_xaxes(
                 title_text=sel_x,
-                title_font=dict(color=txt_color, size=12),
-                tickfont=dict(color=tick_color, size=11),
-                gridcolor=grid_color
+                title_font=dict(color=c_txt, size=12),
+                tickfont=dict(color=c_tick, size=11),
+                gridcolor=c_grid
             )
             fig_custom.update_yaxes(
                 title_text=sel_y,
-                title_font=dict(color=txt_color, size=12),
-                tickfont=dict(color=tick_color, size=11),
-                gridcolor=grid_color
+                title_font=dict(color=c_txt, size=12),
+                tickfont=dict(color=c_tick, size=11),
+                gridcolor=c_grid
             )
             
             st.plotly_chart(fig_custom, use_container_width=True)
